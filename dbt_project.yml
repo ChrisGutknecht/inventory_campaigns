@@ -1,0 +1,86 @@
+
+# Name your project! Project names should contain only lowercase characters
+# and underscores. A good package name should reflect your organization's
+# name or the intended use of these models
+name: 'feed_campaigns'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'default'
+
+# These configurations specify where dbt should look for different types of files.
+# The `source-paths` config, for example, states that models in this project can be
+# found in the "models/" directory. You probably won't need to change these!
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"  # directory which will store compiled SQL files
+clean-targets:         # directories to be removed by `dbt clean`
+    - "target"
+    - "dbt_modules"
+
+vars:
+    'dbt_date:time_zone': 'Europe/Berlin'
+
+
+on-run-end:
+  - "{% if env_var('DBT_ENVIRON_FEED') == 'prod' %} {{ store_test_results(results)}} {% endif %}"
+
+models:
+    feed_campaigns:
+        01_staging:
+            account_structure: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: view
+
+            ad_templates: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: "{{ 'view' if env_var('DBT_ENVIRON_FEED') == 'ci' else 'table' }}"
+
+            feed_data: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: view
+            
+            lookup_tables: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: view
+            
+            seo_data: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: table
+              
+            validated_keywords: 
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: view
+
+        02_intermediate:
+            project: bergzeit
+            dataset: feed_campaigns
+            materialized: view
+
+        03_marts:
+            bulk_uploads:
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: view
+
+            adgroup_outputs:
+                project: bergzeit
+                dataset: feed_campaigns
+                materialized: "{{ 'view' if env_var('DBT_ENVIRON_FEED') == 'ci' else 'table' }}"
+
+                adgroups__base:
+                    project: bergzeit
+                    dataset: feed_campaigns
+                    materialized: view
