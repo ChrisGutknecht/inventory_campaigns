@@ -1,0 +1,60 @@
+{% macro text_to_singular(column_name) %}
+    (
+  initcap(
+    replace( 
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+    replace(
+      replace(
+        replace(
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(
+        lower({{ column_name }}), 'jacken', 'jacke'), 
+'hosen','hose'),
+'mützen','mütze'), 
+'hemden','hemd'), 
+'westen','weste'), 
+'shirts','shirt'), 
+'blusen','bluse'),
+'kleider','kleid'),
+'tanktops','tanktop'),
+'taschen','tasche'),
+'trikots','trikot'),
+'röcke','rock'),
+'rucksäcke','rucksack'),
+'bikinis','bikini'), 
+'bhs','bh'),
+'jassen','jas'),
+'broeken','broek'),
+'mutsen','muts'),
+'overhemden','overhemd'),
+'bodywarmers','bodywarmer'),
+'shirts','shirt'),
+'jurken','jurk'),
+'tassen','tas'),
+'fietsshirts','fietsshirt'),
+'rokken','rok'),
+'rugzakken','rugzak')
+     ) 
+     )
+{% endmacro %}
+
+	
