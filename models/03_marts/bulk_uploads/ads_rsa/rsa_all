@@ -1,0 +1,71 @@
+with feed_adgroups as (
+
+    select *
+    from {{ ref('output_filtered') }}
+
+),
+
+rsa_templates as (
+
+    select {{ dbt_utils.star(ref('stg_ads_rsa_templates')) }}
+    from {{ ref('stg_ads_rsa_templates') }}
+
+), 
+
+ad_url_prefixes as (
+
+    select
+        country,
+        search_url_prefix
+    from {{ ref('stg_search_ad_url_prefixes') }}
+
+), 
+
+rsa_ads_all as (
+
+    select 
+        feed.target_campaign as campaign, 
+        feed.target_ad_group as ad_group,
+
+        /* tbd: add combination specific business rules wite case when statements */
+        /*  headline specific logic and customizer values: 
+            hl_1:    "$$Headline$$" > Fallback for values plus 30 characters
+            hl_2:   "$$Brand$$ im Bergzeit Shop" > need fallback logic for longer brand, 17 for remaining string
+            hl_3:   {CUSTOMIZER.sale_headline}
+            hl_15:  Highlights im {CUSTOMIZER.Month_long:aktuellen Monat} {CUSTOMIZER.Year}
+            hl_17:  {CUSTOMIZER.product_count} Artikel ab {CUSTOMIZER.min_price}
+        */  
+        {%- for i in range(1, 15) %}
+        rsa_templates.headline_{{ i }} as headline_{{ i }},
+        {%- endfor %}
+
+        /* test if ' 1' is necessary at the end */
+        /*  description specific logic and customizer values: 
+            dl_1:   "$$Headline$$ im Bergzeit Onlineshop" > Fallback for values plus xx characters
+            dl_4:   "Mehr als {CUSTOMIZER.brand_count:700} Marken und + {CUSTOMIZER.full_article_count:50000} Artikel. Über 2 Million Bergsportkunden, Service {CUSTOMIZER.shop_rating:4,88}/5."
+        */ 
+        {%- for i in range(1, 4) %}
+        rsa_templates.description_{{ i }} as description_{{ i }},
+        {%- endfor %}
+
+
+
+        /* tbd how to extract */
+        /*if(aggregation_type in ('BC', 'BCG'*/
+        feed.brand_text as path_1,
+        feed.category_text as path_2,
+
+        /* Build search url with url_prefix and keyword */
+        concat(
+            prefixes.search_url_prefix,
+            replace(feed.keyword_full_text, '_', '+')
+        ) as final_url
+    from feed_adgroups as feed
+    left join rsa_templates on 
+        feed.country = rsa_templates.language
+    left join ad_url_prefixes as prefixes on
+        feed.country = prefixes.country
+
+)
+
+select * from rsa_ads_all

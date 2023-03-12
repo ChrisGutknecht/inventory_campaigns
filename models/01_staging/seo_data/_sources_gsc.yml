@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: google_search_console
+    database: bergzeit
+    description: Google search console data, see dbt_analytics project
+    meta:
+        owner: "@Chris G"
+        
+    tables:
+      - name: gsc_data
+        identifier: query_site_report_by_page
+        description: lowest granularity including site, query, url, device and search appearance

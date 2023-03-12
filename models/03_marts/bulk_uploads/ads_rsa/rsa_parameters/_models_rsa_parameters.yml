@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: rsa_adgroup_parameters
+  - name: rsa_global_parameters

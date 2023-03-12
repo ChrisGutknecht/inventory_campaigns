@@ -1,0 +1,7 @@
+version: 2
+
+models: 
+  - name: dsa_adgroup_upload
+  - name: dsa_campaign_settings_upload
+  - name: dsa_dynamic_ads
+  - name: dsa_dynamic_targets_upload

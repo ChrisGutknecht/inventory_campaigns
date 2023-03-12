@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: feed_campaign_product_data
+    database: feeddataaggregation
+    schema: feed_campaign_product_data
+
+    tables:
+      - name: manufacturer_campaign_suffixes
+      - name: bz_country_codes
+      - name: bz_country_codes_all
+      - name: bz_model_types
+      - name: bz_matchtypes_by_country
+      - name: bz_generics_category_exclusion
+      - name: bz_ad_url_search_prefixes
+        description: a lookup table of countries and their hostname prefixes, like DE and "https://www.bergzeit.de/search/?query="

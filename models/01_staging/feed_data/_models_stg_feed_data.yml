@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_bz_feed_data_all
+    description: cleaned stage models of feed source tables
+    columns: 
+    - name: sk_id
+      description: the unique surrogate key of product id and title
+      meta:
+        primary-key: true
+      tests: 
+        - not_null
+        - unique
+    - name: id
+      description: the product id of the SKU
+      tests: 
+        - not_null
+  - name: stg_bz_title_data_all
+    description: cleaned stage models of feed title tables
+    columns: 
+    - name: sk_id
+      description: the unique surrogate key of product id and title
+      meta:
+        primary-key: true
+      tests: 
+        - not_null
+        - unique
+    - name: t_id
+      tests:
+        - not_null
+    - name: title_short
+      tests:
+        - not_null
+  
+  - name: stg_bz_brand_name_changes
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          max_value: 0 # (Optional)
+          strictly: false # (Optional. Adds an 'or equal to' to the comparison operator for min/max)
+    columns: 
+      - name: brand_name_old
+      - name: brand_name_new

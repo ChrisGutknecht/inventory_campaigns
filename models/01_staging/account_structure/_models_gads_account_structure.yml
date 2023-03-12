@@ -1,0 +1,51 @@
+version: 2
+
+models: 
+  - name: stg_gads_adgroups
+    description: this model lists all adgroups of yesterday's Ads data transfer
+    tests: 
+      - dbt_expectations.expect_grouped_row_values_to_have_recent_data:
+          group_by: [customer_id_hyphens]
+          timestamp_column: date
+          datepart: day
+          interval: 1
+          row_condition: "customer_id_hyphens in ('784-418-1130', '557-573-8585', '184-533-1214')" #optional
+
+    columns:
+      - name: customer_id_hyphens
+        description: the Ads customer id as 557-123....
+        tests: 
+          - dbt_utils.at_least_one
+  
+  - name: stg_gads_ads_and_attributes
+    description: this model lists all ads of yesterday's Ads data transfer and their attributes
+    columns:
+      - name: customer_id_hyphens
+        description: the Ads customer id as 557-123....
+        tests: 
+          - dbt_utils.at_least_one
+  
+  - name: stg_gads_campaigns
+    description: this model lists all campaigns of yesterday's Ads data transfer
+    columns:
+      - name: customer_id_hyphens
+        description: the Ads customer id as 557-123....
+        tests: 
+          - dbt_utils.at_least_one
+
+  - name: stg_gads_dsa_ads_and_attributes
+    description: this model lists all dynamic search ads of yesterday's Ads data transfer and their attributes
+    columns:
+      - name: customer_id_hyphens
+        description: the Ads customer id as 557-123....
+        tests: 
+          - dbt_utils.at_least_one
+
+  - name: stg_gads_keywords_and_attributes
+    description: this model lists all keywords of yesterday's Ads data transfer and their attributes
+    columns:
+      - name: customer_id_hyphens
+        description: the Ads customer id as 557-123....
+        tests: 
+          - dbt_utils.at_least_one
+        

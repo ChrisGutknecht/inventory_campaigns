@@ -1,0 +1,12 @@
+version: 2
+
+models: 
+  - name: adgroups_enable_upload
+  - name: adgroups_enable
+  - name: adgroups_new
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+            max_value: 0 # (Optional)
+            row_condition: "customer_id = '_no_id'" # (Optional)
+            strictly: false # (Optional. Adds an 'or equal to' to the comparison operator for min/max)
+  - name: adgroups_new_upload

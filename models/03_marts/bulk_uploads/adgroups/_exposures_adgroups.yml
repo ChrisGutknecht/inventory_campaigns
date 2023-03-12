@@ -1,0 +1,18 @@
+version: 2
+
+exposures:
+  - name: adgroups_status_change_csv
+    tags: ['ga4_migration_unrealistic', 'yoy_comparison']
+    meta:
+        time_range: '90 days'
+        required_dimensions:  ['channel_grouping', 'product_brand']
+        required_metrics:  ['reco_impressions', 'list_impressions']
+
+    type: application
+    url: https://console.cloud.google.com/storage/browser?authuser=0&project=adsdataprediction
+    description: CSV-export to upload changed adgroup statuses to Cloud Storage, for upload to Google Ads     
+    depends_on:
+      - ref('adgroups_status_change_upload')    
+    owner:
+      name: Christopher Gutknecht
+      email: christopher.gutknecht@bergzeit.de

@@ -1,0 +1,8 @@
+version: 2
+
+models:
+    - name: stg_ads_rsa_templates
+      description: Google sheet with all RSA ad template data per country
+      config: 
+        materialized: table
+      

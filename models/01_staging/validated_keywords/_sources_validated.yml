@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: ads_analytics
+    database: adsdataprediction
+    description: Data sources related to Google Ads
+    meta:
+        owner: "@Chris G"
+        
+    tables:
+      - name: validated_keywords
+        description: keywords validated via the Google suggest API

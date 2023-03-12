@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: feed_campaign_product_data
+    database: feeddataaggregation
+    schema: feed_campaign_product_data
+
+    tables:
+      - name: bz_feed_rsa_templates

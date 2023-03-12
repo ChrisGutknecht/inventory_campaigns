@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: rsa_new_upload
+  - name: rsa_new

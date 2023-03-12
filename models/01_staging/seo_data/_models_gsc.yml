@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: stg_gsc_query_data
+    description: this model provides Google Search Console data for keyword validation

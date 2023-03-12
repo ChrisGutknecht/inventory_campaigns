@@ -1,0 +1,7 @@
+version: 2
+
+models: 
+  - name: campaign_sitelinks
+  - name: price_extensions
+  - name: top_20_by_brand_output
+  - name: top_20_by_brand_raw

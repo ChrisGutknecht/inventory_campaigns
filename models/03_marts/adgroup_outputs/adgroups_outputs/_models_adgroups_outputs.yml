@@ -1,0 +1,53 @@
+version: 2
+
+models: 
+  - name: keywords_to_be_validated
+    description: new keywords without validation result from the Google Suggest API
+    tests:
+      - dbt_expectations.expect_table_column_count_to_be_between:
+          max_value: 1000 # (Optional)
+    columns: 
+      - name: keyword
+        meta:
+          primary-key: true
+        tests: 
+          - not_null
+          - unique
+
+  - name: output_all  
+    columns:
+      - name: sk_id
+        meta:
+          primary-key: true
+        tests: 
+          - not_null
+          - unique
+  - name: output_enriched
+    columns:
+      - name: sk_id
+        meta:
+          primary-key: true
+        tests: 
+          - not_null
+          - unique
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal_other_table:
+          compare_model: ref("output_all")
+          factor: 1 # (Optional)
+          config:
+              severity: warn
+
+  - name: output_filtered
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+            column_list: ["country", "keyword_full_text"]
+            row_condition: "model_typ = 'exact'"
+            config:
+                severity: warn
+    columns:
+      - name: sk_id
+        meta:
+          primary-key: true
+        tests: 
+          - not_null
+          - unique

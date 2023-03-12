@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: feed_campaign_product_data
+    database: feeddataaggregation
+    schema: feed_campaign_product_data
+    description: '{{ doc("description_feed_data") }}'
+
+    freshness:
+       warn_after: {count: 12, period: hour}
+      # loaded_at_field: _etl_loaded_at
+
+    tables:
+      - name: bz_feed_de
+        description: a selection of feed-campaign relevant columns from the DE production merchant center feed
+      - name: bz_feed_nl
+        description: a selection of feed-campaign relevant columns from the NL production merchant center feed
+      - name: bz_feed_it
+        description: a selection of feed-campaign relevant columns from the IT production merchant center feed
+      - name: bz_feed_uk
+        description: a selection of feed-campaign relevant columns from the UK production merchant center feed
+      - name: bz_title_data_de
+        description: a two-column feed of sku and core title, only containing the product's model name
+      - name: bz_title_data_nl
+        description: a two-column feed of sku and core title, only containing the product's model name
+  
+  - name: product_inventory_data
+    database: bergzeit
+    schema: dbt_product_inventory
+    tables:
+      - name: product_brand_name_changes
+        description: this model shows all changed brand names with old and new value

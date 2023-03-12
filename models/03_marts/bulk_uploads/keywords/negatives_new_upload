@@ -1,0 +1,13 @@
+select 1
+
+/* 
+
+'Add' as Action #optional
+'$$Campaign_ID$$' as Campaign ID, #optional
+'$$Campaign_Name$$' as Campaign, #required
+'$$Ad_group_name$$' as Ad group, #required
+'$$Ad group_id$$' as Ad group ID, #optional
+'$$Negative_Keyword$$' as Negative keyword, #required
+'Exact match' as Type, #optional #other available values: Phrase match,Broad match
+
+*/

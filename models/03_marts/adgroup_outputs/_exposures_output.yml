@@ -1,0 +1,18 @@
+version: 2
+
+exposures:
+
+  - name: feedcampaign_cloud_function_and_csv
+    type: application
+    url:  https://console.cloud.google.com/functions/details/europe-west3/write_table_to_csv?project=bergzeit
+    description: '{{ doc("description_feedcampaigns") }}'
+    
+    depends_on:
+      - ref('brand_cat_all')
+      - ref('brand_mod_all')
+      - ref('brand_gender_all')
+      
+    owner:
+      name: Christopher Gutknecht
+      email: christopher.gutknecht@bergzeit.de
+      

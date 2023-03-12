@@ -1,0 +1,12 @@
+version: 2
+
+model:
+  - name: int_adgroups_and_ad_type_count
+  - name: int_adgroups_and_keyword_count
+  - name: int_adgroups_and_status
+  - name: int_adgroups_without_keywords
+  - name: int_adgroups_without_negatives
+  - name: int_adgroups_without_rsas
+  - name: int_campaign_and_status
+  - name: int_campaigns_with_dsa_adgroups
+  - name: int_campaigns_without_dsa_adgroups

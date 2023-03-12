@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: campaigns_enable
+    description: ""
+    columns:
+      - name: customer_id_hyphens
+        description: the Google Ads customer ID with hyphens
+      - name: country
+        description: ""
+      - name: campaign_name
+        description: ""
+        tests:
+          - not_null
+
+  - name: campaigns_enable_upload
+    description: ""
+    columns:
+      - name: customer_id
+        description: ""
+        tests: 
+          - not_null
+      - name: row_type
+        description: ""
+      - name: action
+        description: ""
+      - name: campaign_status
+        description: ""
+      - name: campaign
+        description: ""
+        tests:
+          - not_null
+
+  - name: campaigns_new_upload
+    description: ""
+    tests: 
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          max_value: 3 # (Optional)
+          strictly: false # (Optional. Adds an 'or equal to' to the comparison operator for min/max)
+  
+  - name: campaigns_new
+    description: ""
+
+  - name: campaigns_pause
+    description: ""
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          max_value: 0 # (Optional)
+          row_condition: "campaign_name like '%_B_%' or campaign_name like '%_A_%'"
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          max_value: 10 # (Optional)
+          config:
+            severity: warn
+    columns:
+      - name: customer_id_hyphens
+        description: ""
+        tests:
+          - not_null
+          # paused campaigns should mostly be the same across accounts
+          - dbt_expectations.expect_column_proportion_of_unique_values_to_be_between:
+              min_value: 0.3 # (Optional)
+              max_value: 0.5 # (Optional)
+
+      - name: campaign_name
+        description: ""
+        tests:
+          - not_null
+      - name: campaign_status
+        description: ""
+      - name: country
+        description: ""
+      - name: target_campaign
+        description: ""
+
+  - name: campaigns_pause_upload
+    description: ""
+    columns:
+      - name: customer_id
+        description: ""
+      - name: row_type
+        description: ""
+      - name: action
+        description: ""
+      - name: campaign_status
+        description: ""
+      - name: campaign
+        description: ""
+
+  - name: campaigns_status_change_upload
+    description: ""
+    columns:
+      - name: customer_id
+        description: ""
+      - name: row_type
+        description: ""
+      - name: action
+        description: ""
+      - name: campaign_status
+        description: ""
+      - name: campaign
+        description: ""
