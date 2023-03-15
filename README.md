@@ -132,9 +132,22 @@ In the ```03_marts``` folder, all the custom aggregations happen, which are then
 
 - ```output_all``` is the essential model holding all unioned combinations mentioned above
 - ```output_enriched``` adds the data sources suggest API, search console and keyword serving status from the account
+- ```output_filtered``` applies where clause filters on the provided additional data to limit the adgroups and keywords to those with reliable search volume.
 
 The main model flow of combinining, enriching and filtering can be seen here in this dbt graph:
 <img width="458" alt="image" src="https://user-images.githubusercontent.com/6991865/225435848-4112c8f6-e787-400b-8561-148f030cf1f1.png">
+
+After the ```output_filtered``` model, the marts models branch out into their specific Google Ads entities in the ```bulk_uploads``` subfolder: 
+- campaigns, new and status updates
+- adgroups
+- keywords
+- RSAs or responsive search ads
+- DSAs or dynamic search ads (still in progress)
+- assets (formerly ad extensions)
+
+All subfolders implement the specific bulk upload templates to generate (almost) upload-ready marts models. The final marts tables can either be queried from Google Sheets via Connected Sheets or written into Cloud Storage via a Cloud Function
+
+NOTE that the columns are "almost" upload-ready, as the template expects spaces in the column names, which BigQuery does not allow. The column name change is performed by a cloud function seen below as addon.
 
 ## Is there a documentation website that I can explore?
 
@@ -148,9 +161,252 @@ https://inventory-campaigns-bergzeit-demo.netlify.app/#!/overview
 
 --- 
 
-
 If you have any further question, please reach by raising an issue on github or reach out via Linkedin: 
 https://www.linkedin.com/in/chrisgutknecht/ 
 
 Happy building and optimizing, 
 Chris👋
+
+--- 
+ 
+## ADDON 1: Cloud function to write a BigQuery to cloud storage
+
+Add these packages to your requirements.txt
+
+```
+pandas
+pandas-gbq
+google-cloud-bigquery
+```
+
+Python Code: Name the entry function ```write_feed_to_bigquery```:
+```
+#import libraries
+import pandas as pd
+import pandas_gbq
+from google.cloud import bigquery
+import json
+
+
+def write_feed_to_bigquery(request):
+    """
+    Entry method to entire logic of parsing request object, executing query and storage write
+
+    Parameters
+    ----------
+    request : object
+        A flask request object containing the parameters feed_url, table and dataset name
+
+    Returns
+    -------
+    response_header : tuple
+        A flask response header containing body and status code
+    """
+
+    # Parsing the request object for the upload parameters
+    request = request.get_data()
+    try: 
+        request_json = json.loads(request.decode())
+        print(request_json)
+    except ValueError as e:
+        print(f"Error decoding JSON: {e}")
+        return ("JSON Error", 400)
+
+    feed_url = request_json.get('feed_url')
+    separator = request_json.get('separator')
+    project_id = request_json.get('project_id')
+    dataset_name = request_json.get('dataset_name')
+    table_name = request_json.get('table_name')
+    required_columns = request_json.get('required_columns')
+    column_renamings = request_json.get('column_renamings')
+    full_table_name = dataset_name + '.' + table_name
+
+    # Writing data from feed url
+    df = pd.read_csv(feed_url,sep=separator)
+
+    # if a column restriction is added to the payload
+    if required_columns: 
+       df = df[required_columns]
+
+    # if a columns must be renamed
+    if column_renamings: 
+       df = df.rename(columns=column_renamings)
+    
+    print(df.head(3))
+       
+    # Write data to BigQuery
+    pandas_gbq.to_gbq(df, full_table_name, project_id=project_id, if_exists='replace')
+    print('Feed uploaded')
+
+    return ('Data written to BigQuery', 200)
+```
+Invoke the cloud function with an example POST payload like this. All column names need to upper cased and the words spaced
+
+```
+{
+  "project_id":"bergzeit",
+"full_table_name":"your_project.dbt_feed_campaigns.adgroups_new_upload",
+  "bucket_name" : "your_feedcampaign_bulk_upload_bucket",
+  "file_name":"adgroups_new_upload.csv", 
+  "columns_renamed" : {
+    "customer_id" : "Customer ID", 
+    "action" : "Action", 
+    "campaign" : "Campaign", 
+    "ad_group" : "Ad group",
+    "ad_group_type" : "Ad group type"
+   }
+}
+```
+--- 
+
+## ADDON 2: How to call the Suggest API with a list of unvalidated keywords
+
+Add these packages to your requirements.txt
+
+```
+xmltodict
+fuzzywuzzy
+python-Levenshtein
+pandas_gbq==0.19.1
+datetime
+```
+
+Python Code: Name the entry function ```write_validated_keywords_to_storage```:
+```
+import json
+import pandas as pd
+import pandas_gbq
+
+import requests
+import xmltodict
+import time
+from datetime import date
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+
+
+def write_validated_keywords_to_storage(request):
+    
+    #get variables from request body
+    request = request.get_data()
+    try: 
+        request_json = json.loads(request.decode())
+    except ValueError as e:
+        print(f"Error decoding JSON: {e}")
+        return ("JSON Error", 400)
+
+    #get the specifications of the table the results are written to
+    project_id = request_json.get('project_id')
+    dataset_name = request_json.get('dataset_name')
+    table_name = request_json.get('table_name')
+    full_table_name = dataset_name + '.' + table_name
+
+    table_schema = [
+        {'name': 'keyword', 'type': 'STRING'},
+        {'name': 'validation_status', 'type': 'BOOLEAN'},
+        {'name': 'similarity_to_next_validated', 'type': 'FLOAT'},
+        {'name': 'validated_keywords', 'type': 'STRING', 'mode':'REPEATED'},
+        {'name': 'validated_on_date', 'type': 'DATE'}
+        ]
+
+    #get the input keyword list
+    sql = request_json.get('sql')
+    keywords_df = pd.io.gbq.read_gbq(sql, project_id='bergzeit', dialect='standard')
+
+    print('# of unvalidated keywords')
+    print(keywords_df.shape)
+
+    #reduce the amount of keywords sent to the suggest API due to quota limits
+    keywords_validated = keywords_df[0:300]
+    keywords_validated = keywords_validated.apply(lambda row: validate_keywords_via_suggest_api(row), axis=1)
+
+    # Write the results to BigQuery
+    pandas_gbq.to_gbq(keywords_validated, full_table_name, project_id='bergzeit', if_exists='append', table_schema=table_schema)
+    return ('Validated keywords written to storage', 200)
+
+
+#Functions_________________________________________________________________
+
+def validate_keywords_via_suggest_api(row):
+
+    keyword = row['keyword']
+    row['similarity_to_next_validated'] = None
+    row['validation_status'] = None
+    row['validated_keywords'] = None
+    row['validated_on_date'] = None
+
+    suggest_api_base_url = 'https://suggestqueries.google.com/complete/search?output=toolbar&hl=de&q='
+    request_url = suggest_api_base_url + keyword.replace(' ', '+').replace('-', '+')
+    #print(request_url)
+    response_content = requests.get(request_url).content.decode('iso8859-1','ignore')
+    dict_data = {}
+
+    try:
+        dict_data = xmltodict.parse(response_content)
+
+        if dict_data.get('toplevel'):
+            validated_keyword_list = dict_data.get('toplevel').get('CompleteSuggestion')
+            validation_score_list = []
+
+            if isinstance(validated_keyword_list, list):
+                # Find partial full matches via fuzz package
+                validation_score_list = [fuzz.partial_ratio(entry.get('suggestion').get('@data').replace(' ', ''), keyword.replace(' ', '')) for entry in validated_keyword_list]
+                
+                # Sort word order
+                token_sorted_list = [fuzz.token_set_ratio(entry.get('suggestion').get('@data'), keyword) for entry in validated_keyword_list]
+
+                # Find fuzzy matches for 90% matching
+                fuzzy_match_list = [fuzz.WRatio(entry.get('suggestion').get('@data').replace(' ', ''), keyword.replace(' ', '')) for entry in validated_keyword_list]
+
+                # Full keyword match
+                validated_keywords = [entry.get('suggestion').get('@data') for entry in validated_keyword_list]
+
+            # Suggest response only has single entry
+            else:
+                # Sort keywords and remove spaces
+                #print('single_entry')
+                base_keyword_no_spaces = keyword.replace(' ', '')
+                suggest_keyword_no_spaces = validated_keyword_list.get('suggestion').get('@data').replace(' ', '')
+                suggest_keyword = validated_keyword_list.get('suggestion').get('@data')
+
+                validated_keywords = [suggest_keyword] 
+                validation_score_list = [fuzz.partial_ratio(suggest_keyword_no_spaces, base_keyword_no_spaces) for entry in validated_keyword_list]
+                
+                fuzzy_match_list = [fuzz.WRatio(suggest_keyword_no_spaces, base_keyword_no_spaces) for entry in validated_keyword_list]
+
+                token_sorted_list = [fuzz.token_set_ratio(validated_keyword_list.get('suggestion').get('@data'), keyword) for entry in validated_keyword_list]
+
+            if keyword in validated_keywords or 100 in validation_score_list or 100 in token_sorted_list:               
+                row['validation_status'] = True
+                row['similarity_to_next_validated'] = 100
+                row['validated_keywords'] = validated_keywords
+                row['validated_on_date'] = date.today()
+                
+            elif (max(fuzzy_match_list) >= 90 or max(token_sorted_list) >= 90) and keyword not in validated_keywords and 100 not in validation_score_list and 100 not in token_sorted_list: 
+                row['validation_status'] = True
+                max_match_value = max([max(fuzzy_match_list), max(token_sorted_list)])
+                row['similarity_to_next_validated'] = max_match_value
+                row['validated_keywords'] = validated_keywords
+                row['validated_on_date'] = date.today()
+                
+            else:
+                row['validation_status'] = False
+                row['similarity_to_next_validated'] = 0
+                row['validated_on_date'] = date.today()
+            
+        else:
+            row['validation_status'] = False
+            row['similarity_to_next_validated'] = 0
+            row['validated_on_date'] = date.today()
+
+        #print(row['validation_status'])
+
+    except Exception as e:
+        row['validation_status'] = False
+        row['similarity_to_next_validated'] = 0
+        print(e)
+        print(response_content)
+        print(dict_data)
+
+    return row
+```
