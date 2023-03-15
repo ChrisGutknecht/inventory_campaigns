@@ -152,7 +152,7 @@ NOTE that the columns are "almost" upload-ready, as the template expects spaces 
 
 ## Is there a documentation website that I can explore?
 
-The dbt cloud framework provides an *auto-generated* documentation that is exported to Netlify:
+The dbt cloud framework provides a documentation format that is exported to Netlify:
 https://inventory-campaigns-bergzeit-demo.netlify.app/#!/overview
 
 ## Who are the maintainers of this project? 
@@ -162,7 +162,7 @@ https://inventory-campaigns-bergzeit-demo.netlify.app/#!/overview
 
 --- 
 
-If you have any further question, please reach by raising an issue on github or reach out via Linkedin: 
+If you have any further question, please reach out by raising an issue on github or reach out via Linkedin: 
 https://www.linkedin.com/in/chrisgutknecht/ 
 
 Happy building and optimizing, 
@@ -170,7 +170,7 @@ Chris👋
 
 --- 
  
-## ADDON 1: Cloud function to write a BigQuery to cloud storage
+## ADDON 1: Cloud function to write a BigQuery table to cloud storage
 
 Add these packages to your requirements.txt
 
