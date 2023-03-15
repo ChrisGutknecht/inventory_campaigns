@@ -2,41 +2,60 @@
 
 ## High-level description: What is this repository about?
 
-This repository takes item-level product data and performs SQL transformations to generate bulk uploads formats for specific Google Ads entities such as campains, adgroups, keywords etc.
+This repository takes item-level product data and performs SQL transformations to generate bulk uploads formats for specific Google Ads entities such as campains, adgroups, keywords etc. This documentation describes all necessary business logic in SQL and configuration in YAML to perform the necessary transformations. All code was written by the Bergzeit Analytics and Performance team, primarily Christopher Gutknecht and Stephanie Hubert. The content includes all data lineage from source to output, the SQL code, column descrition
+
 
 For a PPC introduction, reference this SMX deck: 
 https://www.slideshare.net/ChristopherGutknecht/scaling-search-campaigns-with-bulk-uploads-and-ad-customizers-smx-2023
 
 <img width="361" alt="dbt_bz" src="https://user-images.githubusercontent.com/6991865/225361573-008c683f-8dee-4f0e-b3d8-bdac0afab6af.png">
 
-This documentation describes all necessary business logic in SQL and configuration in YAML to perform the necessary transformations. All code was written by the Bergzeit Analytics and Performance team, primarily Christopher Gutknecht and Stephanie Hubert. The content includes all data lineage from source to output, the SQL code, column descrition
 ---
 
-## Prerequisites: Which skills and tools do I need to implement this inventory campaign framework?
+## Prerequisites: Which skills and tools do I need to implement this framework?
 
-This repository builds on the dbt (data build tool) framework, the industry standard for large scale SQL transformation in modern data warehouses. 
+This repository builds on the *dbt* (data build tool) framework, the industry standard for large scale SQL transformation in modern data warehouses. 
 
-- You need solid working knowledge of SQL (or a data team) to model your data transformation of product item inventory
+- You need solid working *knowledge of SQL* (or a data team) to model your data transformation of product item inventory
 - For an introduction to the dbt framework, see here: https://www.getdbt.com/blog/what-exactly-is-dbt/
 - To learn the necessary fundamentals of dbt, see this course: https://courses.getdbt.com/courses/fundamentals
-- To get startetd with dbt cloud (recommended for beginners), see here: https://docs.getdbt.com/docs/get-started/dbt-cloud-features
+- To get startetd with *dbt cloud* (recommended for beginners), see here: https://docs.getdbt.com/docs/get-started/dbt-cloud-features
 
-For a dbt cloud project, you will need to connect 1) a data warehouse (BigQuery recommended) and 2) a version control system (github recommended)
+For a dbt cloud project, you will need to connect 1) a *data warehouse* (BigQuery recommended) and 2) a *version control system* (github recommended)
 
 ---
 
-## Installation: How can I setup inventory-driven PPC campaigns for my project?
+## Installation: How can I setup inventory-driven PPC campaigns?
 
-This is a step-by-step guide to setup the inventory campaign project for you
+This is a step-by-step guide to setup the inventory campaign project:
 
 1. Have your dbt cloud account setup and connect your datawarehouse. For BigQuery, see here: https://docs.getdbt.com/reference/warehouse-setups/bigquery-setup
 2. Clone the github repository into your dbt cloud project: https://github.com/ChrisGutknecht/inventory_campaigns
 
-3. Configure you ```dbt_project.yml``` file in the following way: 
-- 
+3. Configure you ```dbt_project.yml``` file in the following way:
 
-4. Review your ```packages.yml``` file. The repo currently leverages ```dbt_utils``` for syntactical abstractions and tests, ```dbt_expectations``` for data quality tests and ```codegen``` for more scalable documentation.
+Basic configuration: Under ```models``` > ```01_staging```, set the ```project``` attribute to your Google cloud project and ```dataset``` to you BigQuery dataset for the following subfolders: 
+-```account_structure```. The staging tables storage destination for your account structure.
+-```ad_templates```. The staging tables for your ad template source.
+-```feed_data```.The staging tables  for your product feed data.
+-```lookup_tables```. The staging tables for your product feed data.
 
+Note that ```materialized: view``` guarantees that all tables always up-to-date.
+
+
+
+Advanced configuration:
+- you can update the default path values under if necessary.
+- there is a deactived on-run-end command for storing test results. This can be helpful if you want to generate a history of failed and successful tests.
+
+4. Review your ```packages.yml``` file. 
+
+The repo currently leverages 
+- ```dbt_utils``` for syntactical abstractions and tests, 
+- ```dbt_expectations``` for data quality tests and 
+- ```codegen``` for more scalable documentation.
+
+After reviewing the required packages, run the ```dbt deps``` to install the packages, which can be seen in the dbt_packages folder.
 5. 
 
 ## Where can I find the REPORT OVERVIEW? (Wo gehts zur Reportübersicht?)
