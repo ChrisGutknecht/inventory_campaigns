@@ -130,6 +130,7 @@ In the ```03_marts``` folder, all the custom aggregations happen, which are then
 - ```brand_mod_all``` holds all brand product model combinations, like Patagonia R1.
 - ```cat_all``` holds all brand-agnostic category values like down jackets, climbing shoes etc.
 
+In the following steps, the outputs are combined and filtered:
 - ```output_all``` is the essential model holding all unioned combinations mentioned above
 - ```output_enriched``` adds the data sources suggest API, search console and keyword serving status from the account
 - ```output_filtered``` applies where clause filters on the provided additional data to limit the adgroups and keywords to those with reliable search volume.
@@ -240,7 +241,7 @@ def write_feed_to_bigquery(request):
 
     return ('Data written to BigQuery', 200)
 ```
-Invoke the cloud function with an example POST payload like this. All column names need to upper cased and the words spaced
+Invoke the cloud function with an example POST payload like this. All column names need to upper cased and the words spaced. If you apply this method and write to Cloud Storage, fetch the public URL of the file to reference it in the Google Ads bulk upload.
 
 ```
 {
