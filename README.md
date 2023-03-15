@@ -34,25 +34,26 @@ This is a step-by-step guide to setup the inventory campaign project:
 
 3. Configure you ```dbt_project.yml``` file in the following way:
 
-*Basic configuration* 
+### Basic configuration
 
 Under ```models``` > ```01_staging```, set the ```project``` attribute to your Google cloud project and ```dataset``` to you BigQuery dataset for the following subfolders: 
 
-*```account_structure```. The staging tables storage destination for your account structure.
+- ```account_structure```. The staging tables storage destination for your account structure.
 
-*```ad_templates```. The staging tables for your ad template source.
+- ```ad_templates```. The staging tables for your ad template source.
 
-*```feed_data```.The staging tables  for your product feed data.
+- ```feed_data```.The staging tables  for your product feed data.
 
-*```lookup_tables```. The staging tables for your product feed data.
+- ```lookup_tables```. The staging tables for your product feed data.
 
-*```seo_data```. The staging tables for your search console data.
+- ```seo_data```. The staging tables for your search console data.
 
-*```validated_keywords```. The staging tables for your keywords validated from the suggest API.
+- ```validated_keywords```. The staging tables for your keywords validated from the suggest API.
 
 Note that ```materialized: view``` guarantees that all tables always up-to-date. The alternative materialization ```materialized: "{{ 'view' if env_var('DBT_ENVIRON_FEED') == 'ci' else 'table' }}"``` will materialize the table in the production environment but keep a view table for the continuous integration environment.
 
-Advanced configuration:
+### Advanced configuration
+
 - you can update the default path values under if necessary.
 - there is a deactived on-run-end command for storing test results. This can be helpful if you want to generate a history of failed and successful tests.
 
