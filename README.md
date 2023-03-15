@@ -34,7 +34,7 @@ This is a step-by-step guide to setup the inventory campaign project:
 
 3. Configure you ```dbt_project.yml``` file in the following way:
 
-### Basic configuration
+*Basic configuration*
 
 Under ```models``` > ```01_staging```, set the ```project``` attribute to your Google cloud project and ```dataset``` to you BigQuery dataset for the following subfolders: 
 
@@ -52,7 +52,7 @@ Under ```models``` > ```01_staging```, set the ```project``` attribute to your G
 
 Note that ```materialized: view``` guarantees that all tables always up-to-date. The alternative materialization ```materialized: "{{ 'view' if env_var('DBT_ENVIRON_FEED') == 'ci' else 'table' }}"``` will materialize the table in the production environment but keep a view table for the continuous integration environment.
 
-### Advanced configuration
+*Advanced configuration*
 
 - you can update the default path values under if necessary.
 - there is a deactived on-run-end command for storing test results. This can be helpful if you want to generate a history of failed and successful tests.
@@ -70,7 +70,7 @@ After reviewing the required packages, run the ```dbt deps``` to install the pac
 
 Open the source yaml files for every staging folder mentioned in 3.1. and configure your source tables. 
 
-Example for ```01_staging``` > ``````account_structure```:
+Example for ```01_staging``` > ```account_structure```:
 - ```database``` represents the Google cloud project
 - ```schema``` represents the Google BigQuery dataset
 - ```tables``` > ```name``` is the source table name. This can take an additional ```identifier``` parameter for a nicer table name in your source reference.
@@ -87,6 +87,14 @@ sources:
         description: the status of ads, adgroups and campaigns
 ````
 
+Change the three attribute values for ```database```, ```schema```, ```tables```. 
+
+6. Macro configuration
+
+In the ```macros``` folder, there three subfolders with the following purposes:
+- ```account_structure_filters```. These statements contain all customized filter statements that define the synchronisation scope for the inventory campaigns.
+- ```language_modifications```. This is an extensible collection for multi-language setups. 
+- ```other_text_modifications```. This is a collection of various, necessary text modifications based on Google Ads' character restrictions
 
 Optional configuration
 
