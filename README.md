@@ -1,4 +1,4 @@
-# Welcome to SQL-based PPC inventory campaigns repository!
+# Welcome to the repo for SQL-based PPC inventory campaigns!
 
 ## High-level description: What is this repository about?
 
