@@ -29,7 +29,8 @@ vars:
 
 
 on-run-end:
-  - "{% if env_var('DBT_ENVIRON_FEED') == 'prod' %} {{ store_test_results(results)}} {% endif %}"
+  # run this if you want to store test result and custom override the built-in macro  
+  # - "{% if env_var('DBT_ENVIRON_FEED') == 'prod' %} {{ store_test_results(results)}} {% endif %}"
 
 models:
     feed_campaigns:
