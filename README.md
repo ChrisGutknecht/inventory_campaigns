@@ -37,7 +37,7 @@ This is a step-by-step guide to setup the inventory campaign project:
 
 If you've successfully cloned the github repo above, your own github repo should populate with a set of six folder and further config files. The next steps build on having the repo successfully installed:
 
-3. Configure you ```dbt_project.yml``` file in the following way:
+3. Configure your ```dbt_project.yml``` file in the following way:
 
 3.1. Basic configuration
 
