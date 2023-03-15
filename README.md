@@ -1,4 +1,4 @@
-# Welcome to the Bergzeit inventory campaign project documentation! 
+# Welcome to SQL-based PPC inventory campaigns repository! 
 
 ## High-level description: What is this repository about?
 
