@@ -60,7 +60,7 @@ Note that ```materialized: view``` guarantees that all tables are always up-to-d
 3.2. Advanced configuration
 
 - you can update the default path values under if necessary.
-```
+```yaml
 model-paths: ["models"]
 analysis-paths: ["analysis"]
 test-paths: ["tests"]
@@ -69,7 +69,7 @@ macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 ```
 - there is a deactived on-run-end command for storing test results. This can be helpful if you want to generate a history of failed and successful tests. More on run hooks here: https://docs.getdbt.com/reference/project-configs/on-run-start-on-run-end
-```
+```yaml
 on-run-end:
   # - "{% if env_var('DBT_ENVIRON_FEED') == 'prod' %} {{ store_test_results(results)}} {% endif %}"
 ```
@@ -92,7 +92,7 @@ Example for ```01_staging``` > ```account_structure```:
 - ```schema``` represents the Google BigQuery dataset
 - ```tables``` > ```name``` is the source table name. This can take an additional ```identifier``` parameter for a nicer table name in your source reference.
 
-```
+```yaml
 sources:
   - name: account_structure
     database: your_gcp_project
@@ -181,7 +181,7 @@ google-cloud-bigquery
 ```
 
 Python Code: Name the entry function ```write_feed_to_bigquery```:
-```
+```python
 #import libraries
 import pandas as pd
 import pandas_gbq
@@ -243,7 +243,7 @@ def write_feed_to_bigquery(request):
 ```
 Invoke the cloud function with an example POST payload like this. All column names need to upper cased and the words spaced. If you apply this method and write to Cloud Storage, fetch the public URL of the file to reference it in the Google Ads bulk upload.
 
-```
+```json
 {
   "project_id":"bergzeit",
 "full_table_name":"your_project.dbt_feed_campaigns.adgroups_new_upload",
@@ -273,7 +273,7 @@ datetime
 ```
 
 Python Code: Name the entry function ```write_validated_keywords_to_storage```:
-```
+```python
 import json
 import pandas as pd
 import pandas_gbq
