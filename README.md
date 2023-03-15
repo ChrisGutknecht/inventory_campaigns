@@ -34,15 +34,16 @@ This is a step-by-step guide to setup the inventory campaign project:
 
 3. Configure you ```dbt_project.yml``` file in the following way:
 
-Basic configuration: Under ```models``` > ```01_staging```, set the ```project``` attribute to your Google cloud project and ```dataset``` to you BigQuery dataset for the following subfolders: 
+Basic configuration. Under ```models``` > ```01_staging```, set the ```project``` attribute to your Google cloud project and ```dataset``` to you BigQuery dataset for the following subfolders: 
+
 -```account_structure```. The staging tables storage destination for your account structure.
 -```ad_templates```. The staging tables for your ad template source.
 -```feed_data```.The staging tables  for your product feed data.
 -```lookup_tables```. The staging tables for your product feed data.
+-```seo_data```. The staging tables for your search console data.
+- ```validated_keywords```. The staging tables for your keywords validated from the suggest API.
 
-Note that ```materialized: view``` guarantees that all tables always up-to-date.
-
-
+Note that ```materialized: view``` guarantees that all tables always up-to-date. The alternative materialization ```materialized: "{{ 'view' if env_var('DBT_ENVIRON_FEED') == 'ci' else 'table' }}"``` will materialize the table in the production environment but keep a view table for the continuous integration environment.
 
 Advanced configuration:
 - you can update the default path values under if necessary.
@@ -56,7 +57,30 @@ The repo currently leverages
 - ```codegen``` for more scalable documentation.
 
 After reviewing the required packages, run the ```dbt deps``` to install the packages, which can be seen in the dbt_packages folder.
-5. 
+
+5. Data source configuration
+
+Open the source yaml files for every staging folder mentioned in 3.1. and configure your source tables. 
+
+Example for ```01_staging``` > ``````account_structure```:
+- ```database``` represents the Google cloud project
+- ```schema``` represents the Google BigQuery dataset
+- ```tables``` > ```name``` is the source table name. This can take an additional ```identifier``` parameter for a nicer table name in your source reference.
+
+```
+sources:
+  - name: account_structure
+    database: bergzeit
+    schema: dbt_sea_analytics
+    description: The status of current Google Ads entities per country
+
+    tables:
+      - name: gads_ads_and_parent_statuses
+        description: the status of ads, adgroups and campaigns
+````
+
+
+Optional configuration
 
 ## Where can I find the REPORT OVERVIEW? (Wo gehts zur Reportübersicht?)
 
