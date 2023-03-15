@@ -95,7 +95,7 @@ Example for ```01_staging``` > ```account_structure```:
 ```
 sources:
   - name: account_structure
-    database: bergzeit
+    database: your_gcp_project
     schema: dbt_sea_analytics
     description: The status of current Google Ads entities per country
 
