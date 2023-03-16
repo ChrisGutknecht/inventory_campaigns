@@ -1,4 +1,4 @@
-# Welcome to the repo for SQL-based PPC inventory campaigns!
+# Welcome to the SQL-based PPC inventory campaigns repository! (by Bergzeit)
 
 ## High-level description: What is this repository about?
 
@@ -37,7 +37,7 @@ This is a step-by-step guide to setup the inventory campaign project:
 
 If you've successfully cloned the github repo above, your own github repo should populate with a set of six folder and further config files. The next steps build on having the repo successfully installed:
 
-3. Configure your ```dbt_project.yml``` file in the following way:
+3. Configure you ```dbt_project.yml``` file in the following way:
 
 3.1. Basic configuration
 
@@ -175,33 +175,35 @@ Chris👋
 Add these packages to your requirements.txt
 
 ```
+google-cloud-storage
+google-cloud-bigquery
 pandas
 pandas-gbq
-google-cloud-bigquery
+google-auth
 ```
 
-Python Code: Name the entry function ```write_feed_to_bigquery```:
+Python Code: Name the entry function ```write_query_results_to_storage```:
 ```python
-#import libraries
-import pandas as pd
-import pandas_gbq
 from google.cloud import bigquery
+from google.cloud import storage
 import json
+import pandas as pd
+import google.auth
 
 
-def write_feed_to_bigquery(request):
+def write_query_results_to_storage(request):
     """
     Entry method to entire logic of parsing request object, executing query and storage write
 
     Parameters
     ----------
     request : object
-        A flask request object containing the parameters feed_url, table and dataset name
+        A flask request object containing the parameters project id, table name, bucket and file name
 
     Returns
     -------
     response_header : tuple
-        A flask response header containing body and status code
+        A flask response header for the invoked cloud function
     """
 
     # Parsing the request object for the upload parameters
@@ -213,33 +215,71 @@ def write_feed_to_bigquery(request):
         print(f"Error decoding JSON: {e}")
         return ("JSON Error", 400)
 
-    feed_url = request_json.get('feed_url')
-    separator = request_json.get('separator')
     project_id = request_json.get('project_id')
-    dataset_name = request_json.get('dataset_name')
-    table_name = request_json.get('table_name')
-    required_columns = request_json.get('required_columns')
-    column_renamings = request_json.get('column_renamings')
-    full_table_name = dataset_name + '.' + table_name
+    full_table_name = request_json.get('full_table_name')
+    bucket_name = request_json.get('bucket_name')
+    file_name = request_json.get('file_name')
+    columns_renamed =  request_json.get('columns_renamed')
 
-    # Writing data from feed url
-    df = pd.read_csv(feed_url,sep=separator)
+    # Executing the query in BigQuery, returning a dataframe
+    query_df = run_query(project_id, full_table_name)
+    if columns_renamed: 
+        query_df = query_df.rename(columns=columns_renamed)
 
-    # if a column restriction is added to the payload
-    if required_columns: 
-       df = df[required_columns]
+    # Write dataframe to Cloud Storage
+    save_to_storage(query_df, bucket_name, file_name)
 
-    # if a columns must be renamed
-    if column_renamings: 
-       df = df.rename(columns=column_renamings)
-    
-    print(df.head(3))
-       
-    # Write data to BigQuery
-    pandas_gbq.to_gbq(df, full_table_name, project_id=project_id, if_exists='replace')
+    return ('Data written to storage', 200)
+
+
+def run_query(project_id, full_table_name):
+    """
+    Builds and executing query to return a dataframe
+
+    Parameters
+    ----------
+    project_id : string
+        The cloud platform project name
+    full_table_name : string
+        The full string of project id, dataset and table name
+
+    Returns
+    -------
+    df : object
+        A dataframe with the query result
+    """
+
+    query = 'select * from `{}`'.format(full_table_name)
+    df = pd.io.gbq.read_gbq(query, project_id=project_id, dialect='standard')  
+
+    return df
+
+
+def save_to_storage(df, bucket_name, file_name):
+    """
+    Writes the dataframe as a csv file to cloud storage
+
+    Parameters
+    ----------
+    data : object
+        The dataframe resulting from the query
+    bucket_name : string
+        The name of the cloud storage bucket to write the csv to
+    file_name : string
+        The file name to be created or overwritten
+
+    Returns
+    -------
+    None
+        No return value
+    """
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    df.to_csv('/home/{}'.format(file_name), index=False, encoding='utf-8-sig')
+    blob.upload_from_filename('/home/{}'.format(file_name))
     print('Feed uploaded')
-
-    return ('Data written to BigQuery', 200)
 ```
 Invoke the cloud function with an example POST payload like this. All column names need to upper cased and the words spaced. If you apply this method and write to Cloud Storage, fetch the public URL of the file to reference it in the Google Ads bulk upload.
 
